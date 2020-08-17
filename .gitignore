@@ -1,0 +1,42 @@
+bin/
+dist/
+
+###> IntelliJ
+.idea/
+
+###> textmate
+*.tmproj
+*.tmproject
+tmtags
+
+###> sublimetext
+/*.sublime-project
+*.sublime-workspace
+
+###> netbeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+###> VS Code
+.vscode
+.code-workspace
+
+###> Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+###> Mac OS X
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
