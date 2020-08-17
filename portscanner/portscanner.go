@@ -1,51 +1,74 @@
 package portscanner
 
 import (
-	"fmt"
 	"net"
+	"sort"
 	"strconv"
 	"sync"
 )
 
+// ScanResult models a scan result
 type ScanResult struct {
 	Port  int
 	State string
 }
 
-func GetPortStatus(protocol string, ip string, port int, waitGroup *sync.WaitGroup) ScanResult {
-	result := ScanResult{Port: port}
+const (
+	// CLOSED means closed
+	CLOSED = "Closed"
+	// OPEN means open
+	OPEN = "Open"
+)
+
+// ScanPort Gets the port status
+func ScanPort(protocol string, ip string, port int, waitGroup *sync.WaitGroup, portResultChannel chan ScanResult) {
+	scanResult := ScanResult{
+		Port: port,
+	}
 
 	address := ip + ":" + strconv.Itoa(port)
 	conn, err := net.Dial("tcp", address)
 
 	if err != nil {
-		result.State = "Closed"
-		fmt.Printf("Port %d:\tClosed\n", port)
+		scanResult.State = CLOSED
+		portResultChannel <- scanResult
 		waitGroup.Done()
-
-		return result
+		return
 	}
 
 	defer conn.Close()
 
-	result.State = "Open"
-	fmt.Printf("Port %d:\tOpen\n", port)
+	scanResult.State = OPEN
+	portResultChannel <- scanResult
 	waitGroup.Done()
-
-	return result
+	return
 }
 
-func StartScan(hostname string) []ScanResult {
-
+// PingScan starts a ping scan
+func PingScan(hostname string) []ScanResult {
 	var results []ScanResult
+	var portResultChannel = make(chan ScanResult)
+	defer close(portResultChannel)
+
 	var waitGroup sync.WaitGroup
 
-	for port := 0; port <= 1024; port++ {
+	for port := 1; port <= 1024; port++ {
 		waitGroup.Add(1)
-		results = append(results, GetPortStatus("tcp", hostname, port, &waitGroup))
+		go ScanPort("tcp", hostname, port, &waitGroup, portResultChannel)
+		portResult := <-portResultChannel
+		results = append(results, portResult)
 	}
 
 	waitGroup.Wait()
+	sortResults(results)
+
+	return results
+}
+
+func sortResults(results []ScanResult) []ScanResult {
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Port < results[j].Port
+	})
 
 	return results
 }
