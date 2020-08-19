@@ -7,21 +7,7 @@ import (
 	"sync"
 )
 
-// ScanResult models a scan result
-type ScanResult struct {
-	Port  int
-	State string
-}
-
-const (
-	// CLOSED means closed
-	CLOSED = "Closed"
-	// OPEN means open
-	OPEN = "Open"
-)
-
-// ScanPort Gets the port status
-func ScanPort(protocol string, ip string, port int, waitGroup *sync.WaitGroup, portResultChannel chan ScanResult) {
+func scanPort(protocol string, ip string, port int, waitGroup *sync.WaitGroup, portResultChannel chan ScanResult) {
 	scanResult := ScanResult{
 		Port: port,
 	}
@@ -44,8 +30,8 @@ func ScanPort(protocol string, ip string, port int, waitGroup *sync.WaitGroup, p
 	return
 }
 
-// PingScan starts a ping scan
-func PingScan(hostname string) []ScanResult {
+// ConnectScan starts a TCP Connect Scan
+func ConnectScan(hostname string) []ScanResult {
 	var results []ScanResult
 	var portResultChannel = make(chan ScanResult)
 	defer close(portResultChannel)
@@ -54,7 +40,7 @@ func PingScan(hostname string) []ScanResult {
 
 	for port := 1; port <= 1024; port++ {
 		waitGroup.Add(1)
-		go ScanPort("tcp", hostname, port, &waitGroup, portResultChannel)
+		go scanPort("tcp", hostname, port, &waitGroup, portResultChannel)
 		portResult := <-portResultChannel
 		results = append(results, portResult)
 	}
