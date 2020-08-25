@@ -10,12 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	openPortString     = "Port: %d\t\t\033[1;34mOpen\033[0m\n"
-	closedPortString   = "Port: %d\t\t\033[1;31mClosed\033[0m\n"
-	filteredPortString = "Port: %d\t\t\033[1;33mClosed\033[0m\n"
-)
-
 var showClosedPorts bool
 
 func init() {
@@ -36,20 +30,13 @@ var connectScanCmd = &cobra.Command{
 		return fmt.Errorf("Invalid host specified: %s", args[0])
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Starting Port Scan...")
+		portscanner.DisplayStartScanner()
 		start := time.Now()
-		results := portscanner.ConnectScan(args[0])
+		host := args[0]
+		results := portscanner.ConnectScan(host)
 		elapsed := time.Since(start)
 
-		for _, result := range results {
-			if result.State == portscanner.OPEN {
-				fmt.Printf(openPortString, result.Port)
-			} else if showClosedPorts {
-				fmt.Printf(closedPortString, result.Port)
-			}
-		}
-
-		fmt.Printf("\nPort Scan took %s\n", elapsed)
+		portscanner.DisplayResults(showClosedPorts, results, elapsed)
 	},
 }
 
